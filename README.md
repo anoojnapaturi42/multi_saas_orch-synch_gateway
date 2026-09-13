@@ -56,3 +56,7 @@ The Redis token bucket uses `gateway:rate-limit:{targetAppId}` keys, so multiple
 The application is an OAuth2 Resource Server. Set `JWT_ISSUER_URI` to the Keycloak, Okta, or custom OIDC issuer; Spring Security discovers the signing keys and validates JWTs. Method security maps the requested roles to `ROLE_ADMIN` (full configuration and re-drive access), `ROLE_OPERATOR` (manual trigger and log viewing), and `ROLE_AUDITOR` (read-only log viewing).
 
 Administrative methods use `@AuditLog`. `AuditLoggingAspect` records the authenticated JWT subject, action, resource target, client IP, timestamp, and SpEL-selected old/new JSON state in `audit_logs`. Audit writes use a new transaction so the record is retained when the administrative operation rolls back.
+
+## Integration scenario fixtures
+
+`src/test/resources/data.sql` seeds all four reference scenarios: employee onboarding, high-priority escalation, procurement licensing, and cross-departmental offboarding. `ConfigurationDrivenScenariosIT` runs them against PostgreSQL in Testcontainers and asserts that ordering, transformation mode, rate/retry settings, DLQ behavior, fan-out grouping, and persisted execution logs come from database rows. The offboarding listener executes consecutive steps carrying the same `parallel_group` concurrently. Run with `mvn verify`; Docker is required for the Testcontainers PostgreSQL instance.

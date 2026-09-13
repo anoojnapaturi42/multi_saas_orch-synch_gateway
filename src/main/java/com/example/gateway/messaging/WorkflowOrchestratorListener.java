@@ -18,6 +18,7 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -61,12 +62,24 @@ public class WorkflowOrchestratorListener {
             execution.setWorkflow(workflow); execution.setTriggerPayload(asMap(event.payload()));
             execution.setStatus(Enums.ExecutionStatus.RUNNING); execution.setStartTime(Instant.now());
             executionRepository.save(execution);
-            for (WorkflowStep step : stepRepository.findAllByWorkflowIdOrderByStepOrder(workflow.getId())) {
-                StepExecutionResult result = executor.execute(step, event.payload()).block();
-                logRepository.save(log(execution, step, event.payload(), result));
-                if (result == null || !result.successful()) {
-                    handleFailure(event, workflow, execution, step, result, retryCount);
-                    return;
+            var steps = stepRepository.findAllByWorkflowIdOrderByStepOrder(workflow.getId());
+            for (int index = 0; index < steps.size();) {
+                WorkflowStep first = steps.get(index);
+                String parallelGroup = String.valueOf(first.getTransformSchema().getOrDefault("parallel_group", ""));
+                if (!parallelGroup.isBlank()) {
+                    java.util.List<WorkflowStep> group = new java.util.ArrayList<>();
+                    while (index < steps.size() && parallelGroup.equals(String.valueOf(steps.get(index).getTransformSchema().getOrDefault("parallel_group", "")))) group.add(steps.get(index++));
+                    var results = Flux.fromIterable(group).flatMapSequential(step -> executor.execute(step, event.payload())).collectList().block();
+                    for (int position = 0; position < group.size(); position++) {
+                        StepExecutionResult result = results == null ? null : results.get(position);
+                        logRepository.save(log(execution, group.get(position), event.payload(), result));
+                        if (result == null || !result.successful()) { handleFailure(event, workflow, execution, group.get(position), result, retryCount); return; }
+                    }
+                } else {
+                    index++;
+                    StepExecutionResult result = executor.execute(first, event.payload()).block();
+                    logRepository.save(log(execution, first, event.payload(), result));
+                    if (result == null || !result.successful()) { handleFailure(event, workflow, execution, first, result, retryCount); return; }
                 }
             }
             execution.setStatus(Enums.ExecutionStatus.COMPLETED); execution.setEndTime(Instant.now());

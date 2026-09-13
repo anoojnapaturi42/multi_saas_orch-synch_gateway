@@ -1,0 +1,50 @@
+-- Configuration-only fixtures for four independent business workflows.
+-- UUIDs are stable so tests, fixtures, and external references remain readable.
+
+INSERT INTO integration_app (id, tenant_id, name, base_url, auth_type, default_headers, auth_config, rate_limit_config, enabled)
+VALUES
+('10000000-0000-0000-0000-000000000001', 'tenant-acme', 'Workday', 'https://workday.example.test', 'OAUTH2', '{"Accept":"application/json"}', '{"accessToken":"test-workday-token"}', '{"capacity":60,"refillTokens":60,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000002', 'tenant-acme', 'Internal DB API', 'https://internal-db.example.test', 'API_KEY', '{"X-Source":"gateway"}', '{"headerName":"X-API-Key","value":"db-test-key"}', '{"capacity":100,"refillTokens":100,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000003', 'tenant-acme', 'Workspace REST API', 'https://workspace.example.test', 'OAUTH2', '{}', '{"accessToken":"workspace-test-token"}', '{"capacity":30,"refillTokens":30,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000004', 'tenant-acme', 'Slack Webhook', 'https://hooks.slack.example.test', 'API_KEY', '{}', '{"headerName":"X-Slack-Signature","value":"slack-test-key"}', '{"capacity":1,"refillTokens":1,"refillPeriodMillis":1000}', true),
+('10000000-0000-0000-0000-000000000005', 'tenant-acme', 'Datadog', 'https://api.datadoghq.example.test', 'API_KEY', '{}', '{"headerName":"DD-API-KEY","value":"datadog-test-key"}', '{"capacity":60,"refillTokens":60,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000006', 'tenant-acme', 'Deployment Metadata', 'https://deployments.example.test', 'BASIC', '{}', '{"username":"metadata-user","password":"metadata-password"}', '{"capacity":20,"refillTokens":20,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000007', 'tenant-acme', 'Jira', 'https://jira.example.test', 'OAUTH2', '{}', '{"accessToken":"jira-test-token"}', '{"capacity":20,"refillTokens":20,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000008', 'tenant-acme', 'PagerDuty', 'https://events.pagerduty.example.test', 'API_KEY', '{}', '{"headerName":"Authorization","value":"pager-test-key"}', '{"capacity":10,"refillTokens":10,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000009', 'tenant-acme', 'Procurement Vendor SOAP', 'https://vendor.example.test', 'BASIC', '{"Accept":"application/xml"}', '{"username":"vendor-user","password":"vendor-password"}', '{"capacity":10,"refillTokens":10,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000010', 'tenant-acme', 'Accounting DB API', 'https://accounting.example.test', 'API_KEY', '{}', '{"headerName":"X-API-Key","value":"accounting-test-key"}', '{"capacity":100,"refillTokens":100,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000011', 'tenant-acme', 'CRM', 'https://crm.example.test', 'OAUTH2', '{}', '{"accessToken":"crm-test-token"}', '{"capacity":20,"refillTokens":20,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000012', 'tenant-acme', 'Payment Gateway', 'https://payments.example.test', 'OAUTH2', '{}', '{"accessToken":"payments-test-token"}', '{"capacity":20,"refillTokens":20,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000013', 'tenant-acme', 'Storage Buckets', 'https://storage.example.test', 'API_KEY', '{}', '{"headerName":"X-Storage-Key","value":"storage-test-key"}', '{"capacity":20,"refillTokens":20,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000014', 'tenant-acme', 'Approval Webhook', 'https://approval.example.test', 'API_KEY', '{}', '{"headerName":"X-Webhook-Key","value":"approval-test-key"}', '{"capacity":60,"refillTokens":60,"refillPeriodMillis":60000}', true),
+('10000000-0000-0000-0000-000000000015', 'tenant-acme', 'Offboarding Event', 'https://offboarding.example.test', 'API_KEY', '{}', '{"headerName":"X-Event-Key","value":"offboarding-test-key"}', '{"capacity":60,"refillTokens":60,"refillPeriodMillis":60000}', true);
+
+INSERT INTO workflow_definition (id, name, trigger_type, is_enabled, tenant_id, source_app_id)
+VALUES
+('20000000-0000-0000-0000-000000000001', 'Automated Employee Onboarding', 'WEBHOOK', true, 'tenant-acme', '10000000-0000-0000-0000-000000000001'),
+('20000000-0000-0000-0000-000000000002', 'High-Priority Escalation', 'WEBHOOK', true, 'tenant-acme', '10000000-0000-0000-0000-000000000005'),
+('20000000-0000-0000-0000-000000000003', 'Procurement & SaaS Licensing', 'WEBHOOK', true, 'tenant-acme', '10000000-0000-0000-0000-000000000014'),
+('20000000-0000-0000-0000-000000000004', 'Cross-Departmental Offboarding', 'WEBHOOK', true, 'tenant-acme', '10000000-0000-0000-0000-000000000015');
+
+INSERT INTO workflow_step (id, workflow_id, step_order, target_app_id, http_method, endpoint_path, transform_schema, retry_config, failure_strategy)
+VALUES
+('30000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 1, '10000000-0000-0000-0000-000000000002', 'POST', '/employees', '{"employee_id":"$.worker.id","email":"$.worker.work_email","_requestFormat":"JSON"}', '{"maxAttempts":4,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'ABORT'),
+('30000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', 2, '10000000-0000-0000-0000-000000000003', 'POST', '/users', '{"email":"$.worker.work_email","displayName":"CONCAT($.worker.first_name, '' '', $.worker.last_name)","source":"CONST:WORKDAY","_requestFormat":"JSON"}', '{"maxAttempts":4,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'ABORT'),
+('30000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000001', 3, '10000000-0000-0000-0000-000000000004', 'POST', '/services/hooks/onboarding', '{"text":"CONCAT(''New hire: '', $.worker.first_name, '' '', $.worker.last_name)","_requestFormat":"JSON"}', '{"maxAttempts":4,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'CONTINUE'),
+('30000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-000000000002', 1, '10000000-0000-0000-0000-000000000006', 'GET', '/deployments/{deploymentId}', '{"deploymentId":"$.alert.deployment_id","_requestFormat":"JSON"}', '{"maxAttempts":3,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'ABORT'),
+('30000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-000000000002', 2, '10000000-0000-0000-0000-000000000007', 'POST', '/rest/api/3/issue', '{"fields.summary":"$.alert.title","fields.description":"$.deployment.commit_message","fields.priority.name":"CONST:Highest","_requestFormat":"JSON"}', '{"maxAttempts":3,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'ABORT'),
+('30000000-0000-0000-0000-000000000006', '20000000-0000-0000-0000-000000000002', 3, '10000000-0000-0000-0000-000000000004', 'POST', '/services/hooks/incidents', '{"text":"CONCAT(''Incident channel for '', $.alert.service)","_requestFormat":"JSON"}', '{"maxAttempts":3,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'CONTINUE'),
+('30000000-0000-0000-0000-000000000007', '20000000-0000-0000-0000-000000000002', 4, '10000000-0000-0000-0000-000000000008', 'POST', '/v2/enqueue', '{"routing_key":"$.alert.service","dedup_key":"$.alert.id","_requestFormat":"JSON"}', '{"maxAttempts":4,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'DLQ'),
+('30000000-0000-0000-0000-000000000008', '20000000-0000-0000-0000-000000000003', 1, '10000000-0000-0000-0000-000000000009', 'POST', '/soap/PurchaseOrder', '{"_requestFormat":"SOAP","PurchaseOrderNumber":"$.approval.order_number","Supplier":"$.approval.supplier","Amount":"$.approval.amount","_soapAction":"urn:CreatePurchaseOrder"}', '{"maxAttempts":3,"backoffMs":4000,"retryStatuses":[429,500,502,503,504]}', 'ABORT'),
+('30000000-0000-0000-0000-000000000009', '20000000-0000-0000-0000-000000000003', 2, '10000000-0000-0000-0000-000000000010', 'POST', '/v1/procurement/entries', '{"invoiceId":"XML_TO_JSON($.PurchaseOrderResponse.InvoiceId)","amount":"XML_TO_JSON($.PurchaseOrderResponse.Total)","status":"CONST:APPROVED","_requestFormat":"JSON"}', '{"maxAttempts":3,"backoffMs":4000,"retryStatuses":[429,500,502,503,504]}', 'ABORT'),
+('30000000-0000-0000-0000-000000000010', '20000000-0000-0000-0000-000000000004', 1, '10000000-0000-0000-0000-000000000011', 'DELETE', '/v1/users/{userId}', '{"userId":"$.employee.user_id","parallel_group":"offboarding_fanout","_requestFormat":"JSON"}', '{"maxAttempts":4,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'DLQ'),
+('30000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000004', 2, '10000000-0000-0000-0000-000000000012', 'POST', '/v1/customers/{userId}/revoke', '{"userId":"$.employee.user_id","parallel_group":"offboarding_fanout","_requestFormat":"JSON"}', '{"maxAttempts":4,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'DLQ'),
+('30000000-0000-0000-0000-000000000012', '20000000-0000-0000-0000-000000000004', 3, '10000000-0000-0000-0000-000000000013', 'DELETE', '/v1/buckets/{userId}', '{"userId":"$.employee.user_id","parallel_group":"offboarding_fanout","_requestFormat":"JSON"}', '{"maxAttempts":4,"backoffMs":2000,"retryStatuses":[429,500,502,503,504]}', 'DLQ');
+
+INSERT INTO field_mapping_config (id, step_id, source_path, target_path, transform_type, transform_config, is_enabled)
+VALUES
+('40000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000002', '$.worker.work_email', '$.email', 'DIRECT', '{}', true),
+('40000000-0000-0000-0000-000000000002', '30000000-0000-0000-0000-000000000002', '$.worker.first_name', '$.firstName', 'DIRECT', '{}', true),
+('40000000-0000-0000-0000-000000000003', '30000000-0000-0000-0000-000000000002', '$.worker.last_name', '$.lastName', 'DIRECT', '{}', true),
+('40000000-0000-0000-0000-000000000004', '30000000-0000-0000-0000-000000000009', '$.PurchaseOrderResponse.InvoiceId', '$.invoiceId', 'XML_TO_JSON', '{}', true),
+('40000000-0000-0000-0000-000000000005', '30000000-0000-0000-0000-000000000009', '$.PurchaseOrderResponse.Total', '$.amount', 'XML_TO_JSON', '{}', true);
