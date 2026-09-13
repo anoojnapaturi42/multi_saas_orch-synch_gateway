@@ -34,6 +34,17 @@ public class IntegrationApp {
     @Column(name = "default_headers", columnDefinition = "jsonb", nullable = false)
     private Map<String, Object> defaultHeaders = Map.of();
 
+    /** Provider-specific auth material or references to a secret manager.
+     * Never persist raw secrets here in production; use secret references. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "auth_config", columnDefinition = "jsonb", nullable = false)
+    private Map<String, Object> authConfig = Map.of();
+
+    /** {"capacity":100,"refillTokens":100,"refillPeriodMillis":60000}. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "rate_limit_config", columnDefinition = "jsonb", nullable = false)
+    private Map<String, Object> rateLimitConfig = Map.of();
+
     @Column(nullable = false)
     private boolean enabled = true;
 
@@ -59,6 +70,10 @@ public class IntegrationApp {
     public void setAuthType(Enums.AuthType authType) { this.authType = authType; }
     public Map<String, Object> getDefaultHeaders() { return defaultHeaders; }
     public void setDefaultHeaders(Map<String, Object> defaultHeaders) { this.defaultHeaders = defaultHeaders; }
+    public Map<String, Object> getAuthConfig() { return authConfig; }
+    public void setAuthConfig(Map<String, Object> authConfig) { this.authConfig = authConfig; }
+    public Map<String, Object> getRateLimitConfig() { return rateLimitConfig; }
+    public void setRateLimitConfig(Map<String, Object> rateLimitConfig) { this.rateLimitConfig = rateLimitConfig; }
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public Instant getCreatedAt() { return createdAt; }

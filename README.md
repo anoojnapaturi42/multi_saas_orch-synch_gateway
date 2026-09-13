@@ -27,6 +27,17 @@ The JSON columns are mapped with Hibernate 6 `@JdbcTypeCode(SqlTypes.JSON)` and 
 
 For XML-to-JSON rules, pass the XML as a textual `JsonNode` and set `"_inputFormat": "XML"`. The service converts it with a securely configured Jackson `XmlMapper`, then applies the same JsonPath mappings. `XML_TO_JSON($.employee.email)` is also supported as an explicit, self-documenting alias. Missing paths, malformed XML/JSON, invalid JsonPath expressions, and malformed function arguments are captured under `_transformationErrors`; successful fields are still returned.
 
+## Outbound API execution
+
+`GenericApiExecutorService` executes each `WorkflowStep` with WebClient. Request behavior is configured in the step/app records:
+
+- `IntegrationApp.authConfig`: API key `{ "headerName": "X-API-Key", "value": "..." }`, Basic `{ "username": "...", "password": "..." }`, or OAuth2 `{ "accessToken": "..." }` / token endpoint settings.
+- `IntegrationApp.rateLimitConfig`: `{ "capacity": 100, "refillTokens": 100, "refillPeriodMillis": 60000 }`.
+- `WorkflowStep.transformSchema._requestFormat`: `JSON`, `XML`, or `SOAP`; SOAP may also set `_soapAction`.
+- `WorkflowStep.retryConfig`: `{ "maxAttempts": 3, "backoffMs": 250 }`.
+
+The Redis token bucket uses `gateway:rate-limit:{targetAppId}` keys, so multiple gateway instances share vendor quotas. Resilience4j retries HTTP 429 and 5xx responses using the step’s retry configuration. The result is returned as `StepExecutionResult` with raw response text, HTTP status, content type, duration, and error information.
+
 ## Design notes
 
 - UUID identifiers avoid coordination between tenants and gateway instances.

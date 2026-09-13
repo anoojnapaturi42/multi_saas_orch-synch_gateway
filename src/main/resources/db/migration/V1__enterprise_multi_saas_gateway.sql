@@ -7,11 +7,15 @@ CREATE TABLE integration_app (
     base_url varchar(2048) NOT NULL,
     auth_type varchar(20) NOT NULL CHECK (auth_type IN ('OAUTH2', 'API_KEY', 'BASIC')),
     default_headers jsonb NOT NULL DEFAULT '{}'::jsonb,
+    auth_config jsonb NOT NULL DEFAULT '{}'::jsonb,
+    rate_limit_config jsonb NOT NULL DEFAULT '{}'::jsonb,
     enabled boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT uk_integration_app_tenant_name UNIQUE (tenant_id, name),
-    CONSTRAINT ck_integration_app_headers_object CHECK (jsonb_typeof(default_headers) = 'object')
+    CONSTRAINT ck_integration_app_headers_object CHECK (jsonb_typeof(default_headers) = 'object'),
+    CONSTRAINT ck_integration_app_auth_object CHECK (jsonb_typeof(auth_config) = 'object'),
+    CONSTRAINT ck_integration_app_rate_limit_object CHECK (jsonb_typeof(rate_limit_config) = 'object')
 );
 
 CREATE TABLE workflow_definition (
@@ -78,6 +82,8 @@ CREATE TABLE field_mapping_config (
 CREATE INDEX ix_integration_app_tenant ON integration_app (tenant_id);
 CREATE INDEX ix_integration_app_auth_type ON integration_app (auth_type);
 CREATE INDEX ix_integration_app_default_headers_gin ON integration_app USING gin (default_headers jsonb_path_ops);
+CREATE INDEX ix_integration_app_auth_config_gin ON integration_app USING gin (auth_config jsonb_path_ops);
+CREATE INDEX ix_integration_app_rate_limit_config_gin ON integration_app USING gin (rate_limit_config jsonb_path_ops);
 
 CREATE INDEX ix_workflow_definition_tenant_enabled ON workflow_definition (tenant_id, is_enabled);
 CREATE INDEX ix_workflow_definition_trigger ON workflow_definition (trigger_type);
