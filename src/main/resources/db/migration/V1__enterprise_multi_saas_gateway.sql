@@ -80,6 +80,17 @@ CREATE TABLE field_mapping_config (
     CONSTRAINT ck_mapping_transform_config_object CHECK (jsonb_typeof(transform_config) = 'object')
 );
 
+CREATE TABLE audit_logs (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id varchar(200) NOT NULL,
+    action varchar(100) NOT NULL,
+    resource_target varchar(500) NOT NULL,
+    ip_address varchar(64),
+    event_timestamp timestamptz NOT NULL DEFAULT now(),
+    old_state jsonb,
+    new_state jsonb
+);
+
 CREATE INDEX ix_integration_app_tenant ON integration_app (tenant_id);
 CREATE INDEX ix_integration_app_auth_type ON integration_app (auth_type);
 CREATE INDEX ix_integration_app_default_headers_gin ON integration_app USING gin (default_headers jsonb_path_ops);
@@ -109,6 +120,12 @@ CREATE INDEX ix_mapping_step ON field_mapping_config (step_id);
 CREATE INDEX ix_mapping_source_path ON field_mapping_config (source_path);
 CREATE INDEX ix_mapping_target_path ON field_mapping_config (target_path);
 CREATE INDEX ix_mapping_transform_config_gin ON field_mapping_config USING gin (transform_config jsonb_path_ops);
+
+CREATE INDEX ix_audit_logs_user_time ON audit_logs (user_id, event_timestamp DESC);
+CREATE INDEX ix_audit_logs_action_time ON audit_logs (action, event_timestamp DESC);
+CREATE INDEX ix_audit_logs_resource ON audit_logs (resource_target);
+CREATE INDEX ix_audit_logs_old_state_gin ON audit_logs USING gin (old_state jsonb_path_ops);
+CREATE INDEX ix_audit_logs_new_state_gin ON audit_logs USING gin (new_state jsonb_path_ops);
 
 CREATE OR REPLACE FUNCTION set_updated_at() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN

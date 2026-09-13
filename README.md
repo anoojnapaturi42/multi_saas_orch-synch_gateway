@@ -50,3 +50,9 @@ The Redis token bucket uses `gateway:rate-limit:{targetAppId}` keys, so multiple
 - Composite indexes cover tenant lookup, workflow step ordering, and execution history.
 - GIN `jsonb_path_ops` indexes support containment/path-oriented configuration and payload searches.
 - Tenant ownership is explicit on workflows and apps; application services should enforce that referenced apps belong to the same tenant.
+
+## Security and audit
+
+The application is an OAuth2 Resource Server. Set `JWT_ISSUER_URI` to the Keycloak, Okta, or custom OIDC issuer; Spring Security discovers the signing keys and validates JWTs. Method security maps the requested roles to `ROLE_ADMIN` (full configuration and re-drive access), `ROLE_OPERATOR` (manual trigger and log viewing), and `ROLE_AUDITOR` (read-only log viewing).
+
+Administrative methods use `@AuditLog`. `AuditLoggingAspect` records the authenticated JWT subject, action, resource target, client IP, timestamp, and SpEL-selected old/new JSON state in `audit_logs`. Audit writes use a new transaction so the record is retained when the administrative operation rolls back.
