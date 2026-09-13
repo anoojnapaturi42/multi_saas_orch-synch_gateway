@@ -17,6 +17,8 @@ public class WorkflowDefinition {
     private Enums.TriggerType triggerType;
     @Column(name = "is_enabled", nullable = false) private boolean enabled = true;
     @Column(name = "tenant_id", nullable = false, length = 100) private String tenantId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "source_app_id", nullable = false)
+    private IntegrationApp sourceApp;
     @Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt;
     @Column(name = "updated_at", nullable = false) private Instant updatedAt;
     protected WorkflowDefinition() {}
@@ -27,5 +29,6 @@ public class WorkflowDefinition {
     public Enums.TriggerType getTriggerType() { return triggerType; } public void setTriggerType(Enums.TriggerType v) { triggerType = v; }
     public boolean isEnabled() { return enabled; } public void setEnabled(boolean v) { enabled = v; }
     public String getTenantId() { return tenantId; } public void setTenantId(String v) { tenantId = v; }
+    public IntegrationApp getSourceApp() { return sourceApp; } public void setSourceApp(IntegrationApp v) { sourceApp = v; }
     public Instant getCreatedAt() { return createdAt; } public Instant getUpdatedAt() { return updatedAt; }
 }

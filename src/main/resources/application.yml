@@ -1,0 +1,13 @@
+spring:
+  rabbitmq:
+    listener:
+      simple:
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+
+# Supply these through deployment secrets/configuration.
+# spring.data.redis.host: localhost
+# spring.data.redis.port: 6379

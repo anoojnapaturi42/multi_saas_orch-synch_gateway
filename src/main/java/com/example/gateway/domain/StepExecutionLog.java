@@ -23,7 +23,7 @@ public class StepExecutionLog {
     @Column(name = "error_message", columnDefinition = "text") private String errorMessage;
     @Column(name = "execution_time_ms") private Long executionTimeMs;
     @Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt;
-    protected StepExecutionLog() {}
+    public StepExecutionLog() {}
     @PrePersist void onCreate() { createdAt = Instant.now(); }
     public UUID getId() { return id; } public WorkflowExecution getExecution() { return execution; } public void setExecution(WorkflowExecution v) { execution = v; }
     public WorkflowStep getStep() { return step; } public void setStep(WorkflowStep v) { step = v; }

@@ -38,6 +38,10 @@ For XML-to-JSON rules, pass the XML as a textual `JsonNode` and set `"_inputForm
 
 The Redis token bucket uses `gateway:rate-limit:{targetAppId}` keys, so multiple gateway instances share vendor quotas. Resilience4j retries HTTP 429 and 5xx responses using the step’s retry configuration. The result is returned as `StepExecutionResult` with raw response text, HTTP status, content type, duration, and error information.
 
+## Event ingestion
+
+`POST /api/v1/webhooks/ingest/{sourceAppId}` accepts arbitrary request text, parses valid JSON, preserves XML/non-JSON content as text, publishes an `IngestionEvent` to `ingestion.exchange`, and responds with HTTP `202` and the generated `executionId`. `WorkflowOrchestratorListener` resolves all enabled workflows whose `source_app_id` matches, then executes their steps sequentially. Transient HTTP failures are retried through `workflow.retry.queue` with 2s, 4s, 8s, and 16s delays; HTTP 400/401/403 and exhausted retries are published to `workflow.dlq` with execution, workflow, step, status, retry count, and error metadata.
+
 ## Design notes
 
 - UUID identifiers avoid coordination between tenants and gateway instances.

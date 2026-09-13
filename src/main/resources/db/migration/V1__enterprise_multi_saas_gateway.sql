@@ -24,6 +24,7 @@ CREATE TABLE workflow_definition (
     trigger_type varchar(20) NOT NULL CHECK (trigger_type IN ('WEBHOOK', 'POLLING', 'SCHEDULED')),
     is_enabled boolean NOT NULL DEFAULT true,
     tenant_id varchar(100) NOT NULL,
+    source_app_id uuid NOT NULL REFERENCES integration_app(id) ON DELETE RESTRICT,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT uk_workflow_definition_tenant_name UNIQUE (tenant_id, name)
@@ -87,6 +88,7 @@ CREATE INDEX ix_integration_app_rate_limit_config_gin ON integration_app USING g
 
 CREATE INDEX ix_workflow_definition_tenant_enabled ON workflow_definition (tenant_id, is_enabled);
 CREATE INDEX ix_workflow_definition_trigger ON workflow_definition (trigger_type);
+CREATE INDEX ix_workflow_definition_source_enabled ON workflow_definition (source_app_id, is_enabled);
 
 CREATE INDEX ix_workflow_step_workflow_order ON workflow_step (workflow_id, step_order);
 CREATE INDEX ix_workflow_step_target_app ON workflow_step (target_app_id);

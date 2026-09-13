@@ -23,6 +23,7 @@ public class WorkflowExecution {
     @Column(name = "start_time") private Instant startTime;
     @Column(name = "end_time") private Instant endTime;
     protected WorkflowExecution() {}
+    public WorkflowExecution(UUID executionId) { this.executionId = executionId; }
     public UUID getExecutionId() { return executionId; }
     public WorkflowDefinition getWorkflow() { return workflow; } public void setWorkflow(WorkflowDefinition v) { workflow = v; }
     public Enums.ExecutionStatus getStatus() { return status; } public void setStatus(Enums.ExecutionStatus v) { status = v; }
