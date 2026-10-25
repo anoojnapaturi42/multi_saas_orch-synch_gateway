@@ -1,6 +1,6 @@
-# Switchboard — Enterprise Multi-SaaS Orchestration Gateway
+# Enterprise Multi-SaaS Orchestration Gateway
 
-Switchboard is a configuration-driven integration gateway for connecting SaaS systems without creating a Java implementation for every workflow or vendor. Workflow definitions, ordered steps, JSON transformations, authentication settings, retry policies, rate limits, and failure strategies are persisted as database records.
+a configuration-driven integration gateway for connecting SaaS systems without creating a Java implementation for every workflow or vendor. Workflow definitions, ordered steps, JSON transformations, authentication settings, retry policies, rate limits, and failure strategies are persisted as database records 
 
 The package contains:
 
